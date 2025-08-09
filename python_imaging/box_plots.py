@@ -111,7 +111,7 @@ def plot_cell_distances(data, save_folder, title=True):
         plt.fill_between(bin_data_orientation['bin_lo'], bin_data_orientation['mean_cell_count'] - bin_data_orientation['std_cell_count'],
                          bin_data_orientation['mean_cell_count'] + bin_data_orientation['std_cell_count'], color=color_rib, alpha=0.2)
         #### Add vertical lines for the 90th percentile
-        plt.axvline(x=perc_cell_count_distances_orient, color=color_rib, linestyle='--', linewidth=1.5, alpha=0.5)
+        plt.axvline(x=perc_cell_count_distances_orient, color=color_rib, linestyle='--', linewidth=1.5)
     plt.xlabel('Cell distance from origin [$\mu$m]', fontsize=15)
     plt.ylabel('Cell count', fontsize=15)
     plt.xticks(np.arange(0, 721, 120),fontsize=15)
@@ -213,10 +213,12 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
     bin_data['fillbetween_1'] = bin_data['mean_cell_count'] - bin_data['std_cell_count']
     bin_data['fillbetween_2'] = bin_data['mean_cell_count'] + bin_data['std_cell_count']
 
+    seaborn.set_context("paper")
+
     g = seaborn.FacetGrid(bin_data, col="chemotaxis_bias", row="ecm_sensitivity", hue='orientation', margin_titles=True,despine=False,legend_out=True, aspect=1.3, height=2)
     
     g.figure.subplots_adjust(wspace=0, hspace=0)
-
+    
     g.map_dataframe(plt.plot, 'bin_lo', 'mean_cell_count')
     #### Change the color of the lines based on orientation
     for ax in g.axes.flat:  
@@ -226,7 +228,7 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
             elif line.get_label() == 'Perpendicular':
                 line.set_color(seaborn.color_palette('colorblind')[1])  
 
-    g.add_legend(title='Orientation', label_order=['Parallel', 'Perpendicular'])
+    g.add_legend(title='Orientation', label_order=['Parallel', 'Perpendicular'], title_fontsize=15, fontsize=15)
     
     # Force rendering to calculate size correctly
     g.figure.canvas.draw()
@@ -238,7 +240,7 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
     bbox_fig_coords = bbox.transformed(g.figure.transFigure.inverted())
 
     # Move legend using figure coordinates
-    seaborn.move_legend(g, "lower center", bbox_to_anchor=(0.5 - bbox_fig_coords.width / 2, -bbox_fig_coords.height), ncol=2)
+    seaborn.move_legend(g, "lower center", bbox_to_anchor=(0.5 - bbox_fig_coords.width / 2, -bbox_fig_coords.height), ncol=2, title_fontsize=15, fontsize=15)
 
     #### Add fill between lines for standard deviation with different colors for each orientation
     g.map_dataframe(plt.fill_between, 'bin_lo', 'fillbetween_1', 'fillbetween_2', alpha=0.2)
@@ -253,13 +255,10 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
 
     #### Add vertical lines for the percentile
     for ax, perc_perp, perc_para in zip(g.axes.flat, perc_cell_count_distances_perpendicular, perc_cell_count_distances_parallel):
-        ax.axvline(x=perc_perp, linestyle='--', linewidth=1.5, alpha=0.5, color=seaborn.color_palette('colorblind')[1])
-        ax.axvline(x=perc_para, linestyle='--', linewidth=1.5, alpha=0.5, color=seaborn.color_palette('colorblind')[0])
+        ax.axvline(x=perc_perp, linestyle='--', linewidth=1.5, color=seaborn.color_palette('colorblind')[1])
+        ax.axvline(x=perc_para, linestyle='--', linewidth=1.5, color=seaborn.color_palette('colorblind')[0])
 
     #### Set axis labels and titles
-    # seaborn.set_style('ticks')
-    seaborn.set_context("paper")
-    
     g.set_axis_labels('Distance from origin [$\mu$m]', 'Cell count')
     g.set_titles(col_template='Chemotaxis bias: {col_name:.1f}', row_template='ECM sensitivity: {row_name:.1f}', fontweight='bold') 
     g.set(xticks=np.arange(0, 501, 100), yticks=np.arange(0, 51, 10))
@@ -363,7 +362,7 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
             elif line.get_label() == 'Perpendicular':
                 line.set_color(seaborn.color_palette('colorblind')[1])  
 
-    g.add_legend(title='Orientation', label_order=['Parallel', 'Perpendicular'])
+    g.add_legend(title='Orientation', label_order=['Parallel', 'Perpendicular'], title_fontsize=10, fontsize=10)
     
     # Force rendering to calculate size correctly
     g.figure.canvas.draw()
@@ -375,7 +374,7 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
     bbox_fig_coords = bbox.transformed(g.figure.transFigure.inverted())
 
     # Move legend using figure coordinates
-    seaborn.move_legend(g, "lower center", bbox_to_anchor=(0.5 - bbox_fig_coords.width / 2, -bbox_fig_coords.height), ncol=2)
+    seaborn.move_legend(g, "lower center", bbox_to_anchor=(0.5 - bbox_fig_coords.width / 2, -bbox_fig_coords.height), ncol=2, title_fontsize=10, fontsize=10)
 
     #### Add fill between lines for standard deviation with different colors for each orientation
     g.map_dataframe(plt.fill_between, 'bin_lo', 'fillbetween_1', 'fillbetween_2', alpha=0.2)
@@ -390,8 +389,8 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
 
     #### Add vertical lines for the percentile
     for ax, perc_perp, perc_para in zip(g.axes.flat, perc_cell_count_distances_perpendicular, perc_cell_count_distances_parallel):
-        ax.axvline(x=perc_perp, linestyle='--', linewidth=1.5, alpha=0.5, color=seaborn.color_palette('colorblind')[1])
-        ax.axvline(x=perc_para, linestyle='--', linewidth=1.5, alpha=0.5, color=seaborn.color_palette('colorblind')[0])
+        ax.axvline(x=perc_perp, linestyle='--', linewidth=1.5, color=seaborn.color_palette('colorblind')[1])
+        ax.axvline(x=perc_para, linestyle='--', linewidth=1.5, color=seaborn.color_palette('colorblind')[0])
 
     #### Set axis labels and titles
     # seaborn.set_style('ticks')

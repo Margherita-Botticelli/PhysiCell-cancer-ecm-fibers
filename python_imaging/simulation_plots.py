@@ -38,34 +38,34 @@ if __name__ == '__main__':
     data_folder = f'../data/{proj}/'
 
     #### Define simulations to run
-    simulations = list(range(0,36)) #### split anisotropy 0.5
+    # simulations = list(range(0,36)) #### split anisotropy 0.5
     # simulations = list(range(36,72)) #### split anisotropy 0.2
     # simulations = list(range(72,108)) #### split anisotropy 0.8
-    # simulations = list(range(0,108)) #### split anisotropy 0.5, 0.2, 0.8
+    simulations = list(range(0,108)) #### split anisotropy 0.5, 0.2, 0.8
     # simulations = list(range(108,114)) #### spheroid (tangential, random and radial) with adh 4.0
     # simulations = list(range(114,120)) #### spheroid (tangential, random and radial) with adh 0.4
-    # simulations = list(range(120,156) #### random anisotropy 0.0
+    # simulations = list(range(120,156)) #### random anisotropy 0.0
 
     #### Flag to determine if existing data should be replaced
     replace = False # True # False # Options: True if you want to replace existing data, False if you want to use existing data
 
     #### List of fibre orientations to test
-    orientations = ['split'] # ['radial', 'random','tangential'] # ['random'] # ['split'] # Options:'random', 'radial', 'tangential'
+    orientations = ['split'] # ['radial', 'random','tangential'] # ['random'] # ['random'] # Options:'random', 'radial', 'tangential'
 
     #### Number of random seeds for simulations
-    n_seeds = 1
+    n_seeds = 10
     seeds = list(range(0, n_seeds))
 
     #### Flags for different types of plots
     title = False # Title on plots
-    box_plots = False # Box plots
+    box_plots = True # Box plots
     heatmaps_speed_vs_degr = False  
     heatmaps_speed_vs_initial_ecm_density = False
     heatmaps_chemo_vs_ecm_sensitivity = False
-    heatmaps_reorientation_vs_orientation = True
+    heatmaps_reorientation_vs_orientation = False
     heatmap_fiber_orientation = False
-    heatmap_time_points = [96*60]#[24*60,48*60]  # Example: [48*60], [96*60]
-    time_point_images = True # 'all' # False # True # True # False # Options: 'all' if you want all time points
+    heatmap_time_points = [48*60]#[24*60,48*60]  # Example: [48*60], [96*60]
+    time_point_images = False # 'all' # False # True # True # False # Options: 'all' if you want all time points
     times = [48*60]#[24*60,48*60] # [0,48*60] # [96*60] # Time points to consider for images, Options: [24*60, 48*60, 72*60, 96*60]
     video = False 
 
@@ -90,10 +90,8 @@ if __name__ == '__main__':
 
     #### Combine data from different simulations into one DataFrame
     for sim in simulations:
-        # for rib in riboses:
         for orientation in orientations:
             for seed in seeds:
-                # df_new = pd.read_pickle(data_folder + f'output_rib{rib}_{sim}_{seed}/dataframe_rib{rib}_{sim}_{seed}.pkl')
                 df_new = pd.read_pickle(data_folder + f'output_{orientation}_{sim}_{seed}/dataframe_{orientation}_{sim}_{seed}.pkl')
                 df_list.append(df_new)
 
@@ -107,18 +105,40 @@ if __name__ == '__main__':
     plt.rcParams.update({'font.weight': 'bold',
         'axes.labelweight': 'bold'})
 
-
-
     ########## BOX PLOTS ###########
     if box_plots:
-        
-        for sim in simulations:
-            for time_point in times:
-                print(f'Box plots for simulation {sim} at time point {time_point}', flush=True)
-                seed = 0
-                data = df[(df['simulation'] == sim) & (df['t'] == time_point) & (df['seed'] == seed)]
-                plot_fibre_orientation(data, data_folder, save_folder, title=title)
+
+        for cell_speed in np.unique(df['max_mot_speed']).astype(float):
+            for initial_anisotropy in np.unique(df['initial_anisotropy']).astype(float):
+            
+                for time_point in heatmap_time_points:
+                    data = df[(df['t'] == time_point) & (df['max_mot_speed'] == cell_speed) & (df['initial_anisotropy'] == initial_anisotropy)]
+                    # plot_cell_distances(data, save_folder, title=title)
+
+                    initial_anisotropy_heatmap = np.unique(df['initial_anisotropy']).astype(float)
+                    for initial_anisotropy in initial_anisotropy_heatmap:
+                        data_initial_anisotropy = df[(df['t'] == time_point) & (df['initial_anisotropy'] == initial_anisotropy)]
+                        simulation_numbers = np.unique(data_initial_anisotropy['simulation']).astype(int)
+                        simulation_name = simulation_numbers[0]
+                        plot_cell_distances_split(data_initial_anisotropy,simulation_name, save_folder, title=title)
+                    
+                    data_anisotropy = df[
+                        (df['t'] == time_point) &
+                        (df['chemotaxis_bias'] == 0.2) &
+                        (df['ecm_sensitivity'].isin([0.6, 0.8, 1.0]))
+                    ]
+                    simulation_numbers = np.unique(data_anisotropy['simulation']).astype(int)
+                    simulation_name = simulation_numbers[0]
+                    plot_cell_distances_split_anisotropy(data_anisotropy,simulation_name, save_folder, title=title)
                 plt.close('all')
+
+        # for sim in simulations:
+        #     for time_point in times:
+        #         print(f'Box plots for simulation {sim} at time point {time_point}', flush=True)
+        #         seed = 0
+        #         data = df[(df['simulation'] == sim) & (df['t'] == time_point) & (df['seed'] == seed)]
+        #         plot_fibre_orientation(data, data_folder, save_folder, title=title)
+        #         plt.close('all')
 
         print('Box plots done!', flush=True)
 
@@ -232,7 +252,6 @@ if __name__ == '__main__':
     def generate_image(sim, seed, orientation, t, df, data_folder, save_folder, title):
         #### Filter data
         # seed = 0  # You had this reset to 0 inside the loop — but it's passed in now
-        # data = df[(df['simulation'] == sim) & (df['ribose'] == rib) & (df['seed'] == seed) & (df['t'] == t)]
         data = df[(df['simulation'] == sim) & (df['orientation'] == orientation) & (df['seed'] == seed) & (df['t'] == t)]
 
         # print(data, flush=True)
@@ -242,8 +261,6 @@ if __name__ == '__main__':
         #### Get time point to find snapshot
         time_step = data[data['ID'] == 0].index.values.astype(int)[0]
         snapshot = 'output' + '{:08d}'.format(int(time_step))
-        # data_folder_sim = data_folder + f'output_rib{rib}_{sim}_{seed}/'
-        # save_name = save_folder + f'images/full_image_rib{rib}_{sim}_{seed}_t{int(t):04}.png'
         data_folder_sim = data_folder + f'output_{orientation}_{sim}_{seed}/'
         save_name = save_folder + f'images/full_image_{orientation}_{sim}_{seed}_t{int(t):04}.png'
 
@@ -259,7 +276,6 @@ if __name__ == '__main__':
         for sim in simulations:
             # for seed in seeds:
                 seed = 0
-                # for rib in riboses:
                 for orientation in orientations:
                     if time_point_images:
                         if time_point_images == 'all':
@@ -275,13 +291,10 @@ if __name__ == '__main__':
     if video:
         for sim in simulations:
             seed = 0
-            # for rib in riboses:
             for orientation in orientations:
-                # video_name = save_folder + f'animations/video_rib{rib}_{sim}_{seed}.mp4'
                 video_name = save_folder + f'animations/video_{orientation}_{sim}_{seed}.mp4'
 
                 #### Find generated images
-                # images = save_folder + f'images/full_image_rib{rib}_{sim}_{seed}_t*.png'
                 images = save_folder + f'images/full_image_{orientation}_{sim}_{seed}_t*.png'
 
                 #### Generate video

@@ -285,7 +285,7 @@ def plots_chemo_vs_ecm_sensitivity_invasion(data, simulation_name, save_folder, 
     #### Fill DataFrame with means and standard deviations
     for x, y, area_mean, area_std in zip(chemotaxis_bias, ecm_sensitivity, invasion_mean, invasion_std):
         df[x][y] = area_mean
-        annot = f"{area_mean:.2f}\n±{area_std:.2f}"
+        annot = f"{area_mean:.1f}\n±{area_std:.1f}"
         annot_df[x][y] = annot
 
     annot_arr = annot_df.to_numpy()
@@ -607,7 +607,7 @@ def plots_reorientation_vs_orientation_invasion(data, simulation_name, save_fold
     #### Fill DataFrame with means and standard deviations
     for x, y, area_mean, area_std in zip(r_orientation, orientation, invasion_mean, invasion_std):
         df[x][y] = area_mean
-        annot = f"{area_mean:.2f}\n±{area_std:.2f}"
+        annot = f"{area_mean:.1f}\n±{area_std:.1f}"
         annot_df[x][y] = annot
 
     annot_arr = annot_df.to_numpy()
