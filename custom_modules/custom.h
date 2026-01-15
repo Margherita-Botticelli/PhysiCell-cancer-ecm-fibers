@@ -72,45 +72,47 @@ using namespace BioFVM;
 using namespace PhysiCell;
 
 // setup functions to help us along 
-
 void create_cell_types( void );
-void setup_tissue( void ); 
 
 // set up the BioFVM microenvironment 
 void setup_microenvironment( void ); 
 
-// custom pathology coloring function 
+void setup_extracellular_matrix( void );
 
+void setup_tissue( void ); 
+
+// custom pathology coloring function 
 std::vector<std::string> AMIGOS_invasion_coloring_function( Cell* pCell );
 
 // custom functions can go here 
-
 class Options 
 {
  public: 
 	int model = 0; 	
 };
 
-void setup_extracellular_matrix( void );
-
-double dot_product( const std::vector<double>& v , const std::vector<double>& w );
+double dot_product_ext( const std::vector<double>& v , const std::vector<double>& w );
 
 double sign_function (double number);
 
-void custom_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt);
+void cell_ecm_adhesion_speed( Cell* pCell, Phenotype& phenotype, double dt );
 
-void cell_ecm_interaction_motility_speed( Cell* pCell, Phenotype& phenotype, double dt );
+void cell_ecm_adhesion_direction( Cell* pCell, Phenotype& phenotype, double dt );
 
-void cell_ecm_interaction_motility_direction( Cell* pCell, Phenotype& phenotype, double dt );
+void cell_ecm_repulsion(Cell* pCell , Phenotype& phenotype , double dt);
 
-void ecm_update_from_cell_motility(Cell* pCell , Phenotype& phenotype , double dt);
+void ecm_remodelling(Cell* pCell , Phenotype& phenotype , double dt);
 
 void proliferation_inhibition( Cell* pCell, Phenotype& phenotype, double dt );
 
-void write_ecm_data_matlab( std::string filename );
+void custom_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt);
 
 void phenotype_function( Cell* pCell, Phenotype& phenotype, double dt );
 
 void custom_function( Cell* pCell, Phenotype& phenotype , double dt );
 
 void contact_function( Cell* pMe, Phenotype& phenoMe , Cell* pOther, Phenotype& phenoOther , double dt ); 
+
+void write_ecm_data_matlab( std::string filename );
+
+

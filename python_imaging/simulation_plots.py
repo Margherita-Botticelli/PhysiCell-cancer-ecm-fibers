@@ -17,6 +17,7 @@ import warnings
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from joblib import Parallel, delayed
+from grid_images import grid_images
 
 
 #### Suppress future warnings
@@ -41,8 +42,8 @@ if __name__ == '__main__':
     # simulations = list(range(0,36)) #### split anisotropy 0.5
     # simulations = list(range(36,72)) #### split anisotropy 0.2
     # simulations = list(range(72,108)) #### split anisotropy 0.8
-    simulations = list(range(0,108)) #### split anisotropy 0.5, 0.2, 0.8
-    # simulations = list(range(108,114)) #### spheroid (tangential, random and radial) with adh 4.0
+    # simulations = list(range(0,108)) #### split anisotropy 0.5, 0.2, 0.8
+    simulations = list(range(108,114)) #### spheroid (tangential, random and radial) with adh 4.0
     # simulations = list(range(114,120)) #### spheroid (tangential, random and radial) with adh 0.4
     # simulations = list(range(120,156)) #### random anisotropy 0.0
 
@@ -50,24 +51,33 @@ if __name__ == '__main__':
     replace = False # True # False # Options: True if you want to replace existing data, False if you want to use existing data
 
     #### List of fibre orientations to test
-    orientations = ['split'] # ['radial', 'random','tangential'] # ['random'] # ['random'] # Options:'random', 'radial', 'tangential'
+    orientations = ['radial', 'random','tangential'] # ['split'] # ['random'] # ['random'] # Options:'random', 'radial', 'tangential'
+
+    row_param = 'orientation' # 'ecm_sensitivity' # 
+    col_param = 'fiber_reorientation_rate' # 'initial_anisotropy' # 'chemotaxis_bias'  # 
+
+    row_vals = [ 'radial','random','tangential'] # [0.6,0.8,1.0] # [0.2,0.8]  # 
+    col_vals = [0.002, 0.05, 1.25] # [0.2, 0.5, 0.8] # [0.0, 0.4, 0.8] # 
+    title_video = 'Simulation visualisation from Section 3.3' # False #  'ECM fibers simulation' # Title for the video
+
 
     #### Number of random seeds for simulations
-    n_seeds = 10
+    n_seeds = 1
     seeds = list(range(0, n_seeds))
 
     #### Flags for different types of plots
     title = False # Title on plots
-    box_plots = True # Box plots
+    box_plots = False # Box plots
     heatmaps_speed_vs_degr = False  
     heatmaps_speed_vs_initial_ecm_density = False
     heatmaps_chemo_vs_ecm_sensitivity = False
     heatmaps_reorientation_vs_orientation = False
     heatmap_fiber_orientation = False
-    heatmap_time_points = [48*60]#[24*60,48*60]  # Example: [48*60], [96*60]
-    time_point_images = False # 'all' # False # True # True # False # Options: 'all' if you want all time points
-    times = [48*60]#[24*60,48*60] # [0,48*60] # [96*60] # Time points to consider for images, Options: [24*60, 48*60, 72*60, 96*60]
-    video = False 
+    heatmap_time_points = [96*60]#[24*60,48*60]  # Example: [48*60], [96*60]
+    time_point_images = False # False # True # True # False #
+    images_grid = True # False 
+    times = range(0,96*60+1, 60) # [48*60]#[24*60,48*60] # [0,48*60] # [96*60] # Time points to consider for images, Options: [24*60, 48*60, 72*60, 96*60]
+    video = True 
 
     #### Define a name for the simulation set based on its indices
     simulation_name = '_'.join(str(s) for s in simulations)
@@ -277,25 +287,59 @@ if __name__ == '__main__':
             # for seed in seeds:
                 seed = 0
                 for orientation in orientations:
-                    if time_point_images:
-                        if time_point_images == 'all':
-                            times = np.unique(df[(df['seed'] == seed) & (df['ID'] == 0)]['t']).astype(int)
-                        for t in times:
-                            tasks.append((sim, seed, orientation, t))
+                    for t in times:
+                        tasks.append((sim, seed, orientation, t))
+
+        df_images = df[(df['seed'] == seed) & (df[row_param].isin(row_vals)) & (df[col_param].isin(col_vals))].copy()
+        
+        #### Run image generation in parallel
+        Parallel(n_jobs=-1)(delayed(generate_image)(sim, seed, orientation, t, df_images, data_folder,save_folder, title)for sim, seed, orientation, t in tasks)
+        
+        # #### Check if video should be generated
+        # if video:
+        #     for sim in simulations:
+        #         seed = 0
+        #         for orientation in orientations:
+        #             video_name = save_folder + f'animations/video_{orientation}_{sim}_{seed}.mp4'
+
+        #             #### Find generated images
+        #             images = save_folder + f'images/full_image_{orientation}_{sim}_{seed}_t*.png'
+
+        #             #### Generate video
+        #             os.system(f'ffmpeg -y -framerate 10 -pattern_type glob -i \'{images}\' -c:v libx264 -pix_fmt yuv420p -vf pad="width=ceil(iw/2)*2:height=ceil(ih/2)*2" {video_name}')
+
+        #             print('Video ready!', flush=True)
+
+    #### Grid of images
+    if images_grid:
+        tasks = []
+
+        df_images = df[(df['ID'] == 0) & (df['seed'] == 0) & (df[row_param].isin(row_vals)) & (df[col_param].isin(col_vals))].copy()
+
+        print(df_images, flush=True)
+
+        simulation_name_list = sorted(df_images["simulation"].unique())
+        simulation_name = simulation_name_list[0] 
+        print('simulation_name_list:', simulation_name_list, flush=True)
+        print('simulation_name:', simulation_name, flush=True)
+    
+        for t in times:
+            df_images_t = df_images[(df_images['t'] == t)].copy()
+            tasks.append((df_images_t, row_param, col_param, t, simulation_name, save_folder,title_video))
 
         #### Run image generation in parallel
-        Parallel(n_jobs=-1)(delayed(generate_image)(sim, seed, orientation, t, df, data_folder,save_folder, title)for sim, seed, orientation, t in tasks)
+        Parallel(n_jobs=-1)(delayed(grid_images)(df_images_t, row_param, col_param, t, simulation_name, save_folder,title_video) for df_images_t, row_param, col_param, t, simulation_name, save_folder,title_video in tasks)
 
-
-    #### Check if video should be generated
-    if video:
-        for sim in simulations:
-            seed = 0
-            for orientation in orientations:
-                video_name = save_folder + f'animations/video_{orientation}_{sim}_{seed}.mp4'
+        #### Check if video should be generated
+        if video:
+            
+            # for orientation in orientations:
+                seed = 0
+                video_name = save_folder + f'animations/video_{simulation_name}_{seed}.mp4'
 
                 #### Find generated images
-                images = save_folder + f'images/full_image_{orientation}_{sim}_{seed}_t*.png'
+                # images = save_folder + f'images/full_image_{orientation}_{sim}_{seed}_t*.png'
+                images = save_folder + f'images/grid_images_{simulation_name}_t*.png'   
 
                 #### Generate video
                 os.system(f'ffmpeg -y -framerate 10 -pattern_type glob -i \'{images}\' -c:v libx264 -pix_fmt yuv420p -vf pad="width=ceil(iw/2)*2:height=ceil(ih/2)*2" {video_name}')

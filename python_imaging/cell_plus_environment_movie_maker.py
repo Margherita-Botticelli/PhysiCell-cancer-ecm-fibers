@@ -72,6 +72,7 @@ def create_plot(data, snapshot, data_folder, save_name, output_plot=True, title=
     chemotaxis_bias = data['chemotaxis_bias'].iloc[0]
     ecm_sensitivity = data['ecm_sensitivity'].iloc[0]
     fiber_reorientation_rate = data['fiber_reorientation_rate'].iloc[0]
+    orientation = data['orientation'].iloc[0]  
 
     # load cell and microenvironment data
     mcds = pyMCDS(snapshot + '.xml', data_folder)
@@ -192,13 +193,16 @@ def create_plot(data, snapshot, data_folder, save_name, output_plot=True, title=
     cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["white", seaborn.color_palette('colorblind')[3]])
     mesh = plt.pcolormesh(xx_ecm, yy_ecm, ecm_density[:, :], cmap=cmap, vmin=0, vmax=1)
 
-    # #### Colorbar ECM density at the bottom, same width as plot
-    # cbar = plt.colorbar(mesh, ax=ax, orientation='horizontal', pad=0.05, shrink=0.8)
-    # cbar.outline.set_visible(False)
-    # cbar.ax.xaxis.set_label_position('bottom')
-    # cbar.ax.xaxis.set_ticks_position('bottom')
-    # cbar.ax.tick_params(labelsize=15)
-    # cbar.set_label(label='ECM density', fontsize=15, color='black')
+    if orientation == 'radial':
+        #### Colorbar ECM density at the bottom, same width as plot
+        #### Change figure size to account for colorbar
+        fig.set_size_inches(7, 8.5)        
+        cbar = plt.colorbar(mesh, ax=ax, orientation='horizontal', pad=0.05, shrink=0.75)
+        cbar.outline.set_visible(False)
+        cbar.ax.xaxis.set_label_position('bottom')
+        cbar.ax.xaxis.set_ticks_position('bottom')
+        cbar.ax.tick_params(labelsize=15)
+        cbar.set_label(label='ECM density', fontsize=15, color='black')
 
     ### Add ECM orientation vectors unscaled by anisotropy ###
     plt.quiver(xx, yy, 20*ECM_x, 20*ECM_y,
