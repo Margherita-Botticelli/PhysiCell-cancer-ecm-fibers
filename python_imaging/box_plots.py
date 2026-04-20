@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.lines as mlines
 from collections import defaultdict
+import textwrap
 
 
 def plot_cell_distances(data, save_folder, title=True):
@@ -123,7 +124,7 @@ def plot_cell_distances(data, save_folder, title=True):
         mlines.Line2D([], [], color=seaborn.color_palette('colorblind')[2], markersize=15, label='Tangential')]
 
     plt.legend(handles=legend_elements, frameon=False, loc='upper left',fontsize=15)
-    plt.title(r'$\bf{Cell\,distances\,from\,origin\,at\,{%i}\,h}$' %(t/60) + f'\nchemo={chemotaxis_bias}, ecm_sens={ecm_sensitivity}, S_cm={max_mot_speed}\n {r_degr=}, {r_displacement=}, r_orie={fiber_reorientation_rate}', fontsize=15)
+    plt.title(title, fontsize=15)
 
     plt.savefig(save_folder + f'plots/cell_distances_{simulation}.png', bbox_inches="tight", dpi=300)
 
@@ -149,7 +150,11 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
     perc_cell_count_distances_perpendicular = []
     perc_cell_count_distances_parallel = []
     
-    for ecm_sensitivity in data['ecm_sensitivity'].unique():
+    ecm_sensitivity_values = data['ecm_sensitivity'].unique()
+    ecm_sensitivity_values = sorted(ecm_sensitivity_values, key=float)
+    ecm_sensitivity_values = ecm_sensitivity_values[::-1]  # Invert order for better visualization
+    
+    for ecm_sensitivity in ecm_sensitivity_values:
         for chemotaxis_bias in data['chemotaxis_bias'].unique():
             data_filtered = data[(data['chemotaxis_bias'] == chemotaxis_bias) & (data['ecm_sensitivity'] == ecm_sensitivity)]
 
@@ -215,7 +220,7 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
 
     seaborn.set_context("paper")
 
-    g = seaborn.FacetGrid(bin_data, col="chemotaxis_bias", row="ecm_sensitivity", hue='orientation', margin_titles=True,despine=False,legend_out=True, aspect=1.3, height=2)
+    g = seaborn.FacetGrid(bin_data, col="chemotaxis_bias",row_order=ecm_sensitivity_values, row="ecm_sensitivity", hue='orientation', margin_titles=True,despine=False,legend_out=True, aspect=1.3, height=2)
     
     g.figure.subplots_adjust(wspace=0, hspace=0)
     
@@ -263,6 +268,11 @@ def plot_cell_distances_split(data, simulation_name, save_folder, title=True):
     g.set_titles(col_template='Chemotaxis bias: {col_name:.1f}', row_template='ECM sensitivity: {row_name:.1f}', fontweight='bold') 
     g.set(xticks=np.arange(0, 501, 100), yticks=np.arange(0, 51, 10))
     g.set(xticklabels=np.arange(0, 501, 100), yticklabels=np.arange(0, 51, 10))
+    
+    if title:
+        wrapped_title = textwrap.fill(str(title), width=70)
+        plt.suptitle(wrapped_title, fontsize=11)
+
     g.tight_layout()
     g.savefig(save_folder + f'plots/cell_distances_split_table_{simulation_name}_t{int(t/60)}.png', bbox_inches="tight", dpi=300)
 
@@ -287,8 +297,12 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
     bin_data = defaultdict(list)
     perc_cell_count_distances_perpendicular = []
     perc_cell_count_distances_parallel = []
+
+    ecm_sensitivity_values = data['ecm_sensitivity'].unique()
+    ecm_sensitivity_values = sorted(ecm_sensitivity_values, key=float)
+    ecm_sensitivity_values = ecm_sensitivity_values[::-1]  # Invert order for better visualization
     
-    for ecm_sensitivity in data['ecm_sensitivity'].unique():
+    for ecm_sensitivity in ecm_sensitivity_values:
         for initial_anisotropy in sorted(data['initial_anisotropy'].unique()):
             data_filtered = data[(data['initial_anisotropy'] == initial_anisotropy) & (data['ecm_sensitivity'] == ecm_sensitivity)]
 
@@ -349,7 +363,7 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
     bin_data['fillbetween_1'] = bin_data['mean_cell_count'] - bin_data['std_cell_count']
     bin_data['fillbetween_2'] = bin_data['mean_cell_count'] + bin_data['std_cell_count']
 
-    g = seaborn.FacetGrid(bin_data, col="initial_anisotropy", row="ecm_sensitivity", hue='orientation', margin_titles=True,despine=False,legend_out=True, aspect=1.3, height=2)
+    g = seaborn.FacetGrid(bin_data, col="initial_anisotropy", row_order=ecm_sensitivity_values, row="ecm_sensitivity", hue='orientation', margin_titles=True,despine=False,legend_out=True, aspect=1.3, height=2)
     
     g.figure.subplots_adjust(wspace=0, hspace=0)
 
@@ -400,6 +414,11 @@ def plot_cell_distances_split_anisotropy(data, simulation_name, save_folder, tit
     g.set_titles(col_template='Initial anisotropy: {col_name:.1f}', row_template='ECM sensitivity: {row_name:.1f}', fontweight='bold') 
     g.set(xticks=np.arange(0, 501, 100), yticks=np.arange(0, 51, 10))
     g.set(xticklabels=np.arange(0, 501, 100), yticklabels=np.arange(0, 51, 10))
+
+    if title:
+        wrapped_title = textwrap.fill(str(title), width=70)
+        plt.suptitle(wrapped_title, fontsize=11)
+
     g.tight_layout()
     g.savefig(save_folder + f'plots/cell_distances_split_anisotropy_table_{simulation_name}_t{int(t/60)}.png', bbox_inches="tight", dpi=300)
 
@@ -453,6 +472,6 @@ def plot_fibre_orientation(data, data_folder, save_folder, title=True):
     plt.ylabel('Percentage of voxels', fontsize=15)
     plt.yticks(np.arange(0, 101, 10), fontsize=15)  # Adjust depending on actual % range
 
-    plt.title(r'$\bf{ECM\,fiber\,orientation\,at\,{%i}\,h}$' %(time_step/60) + f'\nchemo={chemotaxis_bias}, ecm_sens={ecm_sensitivity}, S_cm={max_mot_speed}\n {r_degr=}, {r_displacement=}, r_orie={fiber_reorientation_rate}', fontsize=15)
+    plt.title(title, fontsize=15)
 
     plt.savefig(save_folder + f'plots/fibre_orientation_{simulation}_{int(t)}.png', bbox_inches="tight", dpi=300)

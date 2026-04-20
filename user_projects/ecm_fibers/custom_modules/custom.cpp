@@ -1115,6 +1115,11 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 	// Get displacement rate of ECM  
 	double r_displacement = pCell->custom_data["ecm_displacement_rate"];
 
+	// Get the cell's migration speed
+    double total_speed = pCell->custom_data["total_speed"];
+
+	r_displacement *= total_speed;
+
 	// Cell's velocity vector
 	std::vector<double> velocity = {pCell->custom_data["total_velocity_x"], pCell->custom_data["total_velocity_y"], pCell->custom_data["total_velocity_z"]};
 	// std::vector<double> velocity = phenotype.motility.motility_vector;
@@ -1147,7 +1152,13 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 	voxel_index % ecm_mesh_length > 0 && 						// exclude LHS
 	voxel_index % ecm_mesh_length < ecm_mesh_length - 1)		// exclude RHS
 	{
-		double m = velocity[1] / velocity[0];
+		double m = 0.0;
+		bool vertical_motion = std::abs(velocity[0]) < 0.000001;
+
+		if (!vertical_motion)
+		{
+			m = velocity[1] / velocity[0];
+		}
 		double y = 0;
 		double ecm_dx = parameters.doubles("ecm_dx");
 		// voxel_index zero is on the bottom left
@@ -1157,7 +1168,7 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 		// voxel_index + 1,					// right
 		// voxel_index - ecm_mesh_length,	// bottom
 
-		if (velocity[0] > 0)
+		if (!vertical_motion && velocity[0] > 0)
 		{
 			// y - y_c = m * (x - x_c)
 			// y = y_c + m * (x_v + ecm_dx/2 - x_c)
@@ -1176,7 +1187,7 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 				adjacent_voxel_index = voxel_index - ecm_mesh_length; // bottom
 			}
 		}
-		else if (velocity[0] < 0)
+		else if (!vertical_motion && velocity[0] < 0)
 		{			
 			y  = position[1] + m * (voxel_center[0] - ecm_dx / 2.0 - position[0]);
 
@@ -1193,7 +1204,7 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 				adjacent_voxel_index = voxel_index - ecm_mesh_length; // bottom
 			}
 		}
-		else if (velocity[1] > 0 || velocity[1] < 0)
+		else // vertical motion (velocity[0] == 0)
 		{
 			if (velocity[1] > 0)
 			{
@@ -1242,10 +1253,29 @@ void ecm_displacement(Cell* pCell , Phenotype& phenotype , double dt)
 
 void ecm_reorientation(Cell* pCell, Phenotype& phenotype, double dt) 
 {
-    /**************** Cell-ECM Fiber Realignment ***************/
+    /**************** Cell-ECM Fiber Reorientation ***************/
 
-    // Compute the index of the voxel at the cell's position
-    int voxel_index = microenvironment.nearest_voxel_index(pCell->position);
+    // Position of the cell
+	std::vector<double> position = pCell->position;
+
+	// Get nearest voxel to cell's position
+	int voxel_index = microenvironment.nearest_voxel_index( position );
+
+	//Pick voxel closest to cell's membrane in direction of movement
+	std::vector<double> direction = {pCell->custom_data["total_velocity_x"], pCell->custom_data["total_velocity_y"], pCell->custom_data["total_velocity_z"]};
+	normalize(&direction);
+
+	std::vector<double> scaled_direction;
+	scaled_direction = pCell->phenotype.geometry.radius * direction;
+
+	// Calculating the position of the membrane in the direction of the cell
+	std::vector<double> position_membrane = position + scaled_direction;
+
+	if(parameters.strings("nearest_voxel_remodeling") == "front")
+	{
+		// Computing the index of the voxel at cell front
+		voxel_index = microenvironment.nearest_voxel_index( position_membrane );
+	}
 
     // Get the fiber orientation and anisotropy at the voxel
     std::vector<double> fiber_orientation = ecm.ecm_voxels[voxel_index].ecm_fiber_alignment;
@@ -1298,10 +1328,29 @@ void ecm_reorientation(Cell* pCell, Phenotype& phenotype, double dt)
 
 void ecm_anisotropy_increase(Cell* pCell , Phenotype& phenotype , double dt) 
 {
-	/**************************** Cell-ECM Anisotropy Modification ******************/
+	/**************************** Cell-ECM Fiber Realignment ******************/
 	
-	// Computing the index of the voxel at cell position
-	int voxel_index = microenvironment.nearest_voxel_index( pCell->position );
+	// Position of the cell
+	std::vector<double> position = pCell->position;
+
+	// Get nearest voxel to cell's position
+	int voxel_index = microenvironment.nearest_voxel_index( position );
+
+	//Pick voxel closest to cell's membrane in direction of movement
+	std::vector<double> direction = {pCell->custom_data["total_velocity_x"], pCell->custom_data["total_velocity_y"], pCell->custom_data["total_velocity_z"]};
+	normalize(&direction);
+
+	std::vector<double> scaled_direction;
+	scaled_direction = pCell->phenotype.geometry.radius * direction;
+
+	// Calculating the position of the membrane in the direction of the cell
+	std::vector<double> position_membrane = position + scaled_direction;
+
+	if(parameters.strings("nearest_voxel_remodeling") == "front")
+	{
+		// Computing the index of the voxel at cell front
+		voxel_index = microenvironment.nearest_voxel_index( position_membrane );
+	}
 
 	// Get anisotrpy at cell's position
 	double anisotropy = ecm.ecm_voxels[voxel_index].anisotropy;

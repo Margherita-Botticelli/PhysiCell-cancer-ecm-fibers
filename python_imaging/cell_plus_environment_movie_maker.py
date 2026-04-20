@@ -163,81 +163,96 @@ def create_plot(data, snapshot, data_folder, save_name, output_plot=True, title=
     # mesh_chem = plt.contourf(xx, yy, plane_oxy, cmap=cmap_chem, levels=levels_o2, vmin=0,vmax=38)
 
     # #### Colorbar for chemical substrate at the bottom, same width as plot
-    # cbar_chem = plt.colorbar(mesh_chem, ax=ax, orientation='horizontal', pad=0.05, shrink=0.8)
+    # cbar_chem = plt.colorbar(mesh_chem, ax=ax, orientation='horizontal', pad=0.12, shrink=0.75)
     # cbar_chem.outline.set_visible(False)
     # cbar_chem.ax.xaxis.set_label_position('bottom')
     # cbar_chem.ax.xaxis.set_ticks_position('bottom')
     # cbar_chem.ax.tick_params(axis='x', labelsize=15)
     # cbar_chem.set_ticks(np.arange(0, 39, 5))
-    # cbar_chem.set_label(label='Chemical substrate', fontsize=15, color='black')
+    # cbar_chem.set_label(label='Chemical substrate [mmHg]', fontsize=15, color='black')
+    
 
-    # #### Anisotropy
+    # ### Anisotropy
     # cmap_aniso = mpl.colors.LinearSegmentedColormap.from_list(
     #     "", ["white", seaborn.color_palette('colorblind')[1]]
     # )
     # mesh_aniso = plt.pcolormesh(xx_ecm, yy_ecm, plane_anisotropy[:, :], cmap=cmap_aniso, vmin=0, vmax=1)
     
-    # #### Colorbar for anisotropy at the bottom, same width as plot
-    # cbar_aniso = plt.colorbar(mesh_aniso, ax=ax, orientation='horizontal', pad=0.05, shrink=0.8)
-    # cbar_aniso.outline.set_visible(False)
-    # cbar_aniso.ax.xaxis.set_label_position('bottom')
-    # cbar_aniso.ax.xaxis.set_ticks_position('bottom')
-    # cbar_aniso.ax.tick_params(labelsize=15)
-    # cbar_aniso.set_label(label='ECM anisotropy', fontsize=15, color='black')
+    # # #### Colorbar for anisotropy at the bottom, same width as plot
+    # # cbar_aniso = plt.colorbar(mesh_aniso, ax=ax, orientation='horizontal', pad=0.12, shrink=0.75)
+    # # cbar_aniso.outline.set_visible(False)
+    # # cbar_aniso.ax.xaxis.set_label_position('bottom')
+    # # cbar_aniso.ax.xaxis.set_ticks_position('bottom')
+    # # cbar_aniso.ax.tick_params(labelsize=15)
+    # # cbar_aniso.set_label(label='ECM anisotropy', fontsize=15, color='black')
 
-    # #### Add ECM orientation vectors unscaled by anisotropy ###
+    # ### Add ECM orientation vectors unscaled by anisotropy ###
     # plt.quiver(xx_ecm, yy_ecm, 20*ECM_x, 20*ECM_y,
     #     pivot='middle', angles='xy', scale_units='xy', scale=1, headwidth=0, headlength=0, headaxislength=0)
+
+
 
     #### ECM density
     cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["white", seaborn.color_palette('colorblind')[3]])
     mesh = plt.pcolormesh(xx_ecm, yy_ecm, ecm_density[:, :], cmap=cmap, vmin=0, vmax=1)
 
-    if orientation == 'radial':
-        #### Colorbar ECM density at the bottom, same width as plot
-        #### Change figure size to account for colorbar
-        fig.set_size_inches(7, 8.5)        
-        cbar = plt.colorbar(mesh, ax=ax, orientation='horizontal', pad=0.05, shrink=0.75)
-        cbar.outline.set_visible(False)
-        cbar.ax.xaxis.set_label_position('bottom')
-        cbar.ax.xaxis.set_ticks_position('bottom')
-        cbar.ax.tick_params(labelsize=15)
-        cbar.set_label(label='ECM density', fontsize=15, color='black')
+    # # #### Colorbar ECM density at the bottom, same width as plot
+    # # cbar = plt.colorbar(mesh, ax=ax, orientation='horizontal', pad=0.12, shrink=0.75)
+    # # cbar.outline.set_visible(False)
+    # # cbar.ax.xaxis.set_label_position('bottom')
+    # # cbar.ax.xaxis.set_ticks_position('bottom')
+    # # cbar.ax.tick_params(labelsize=15)
+    # # cbar.set_label(label='ECM density', fontsize=15, color='black')
 
     ### Add ECM orientation vectors unscaled by anisotropy ###
     plt.quiver(xx, yy, 20*ECM_x, 20*ECM_y,
         pivot='middle', angles='xy', scale_units='xy', scale=1, headwidth=0, headlength=0, headaxislength=0)
+
 
     #### Add cells layer
     for j in data['ID'].tolist():
         circ = Circle((data[data['ID']==j]['position_x'].iloc[0], data[data['ID']==j]['position_y'].iloc[0]),radius=data[data['ID']==j]['radius'].iloc[0], alpha=0.7, edgecolor='black',facecolor=seaborn.color_palette('colorblind')[2])
         ax.add_artist(circ)
 
-    #### Add scalebar 
     scalebar = AnchoredSizeBar(ax.transData,
-                            100, r'100 [$\mu$m]', 'lower right', 
-                            pad=0.1,
-                            color='white',
-                            frameon=False,
-                            size_vertical=1,
-                            fontproperties={'size':15})
-    ax.add_artist(scalebar)
+        100, r'100 [$\mu$m]', 'lower right',
+        pad=0.1,
+        color='black',
+        frameon=True,              # Enable frame
+        size_vertical=1,
+        fontproperties={'size': 15}
+    )
 
+    # Customize background
+    scalebar.patch.set_facecolor('white')
+    scalebar.patch.set_edgecolor('none')   # Optional: remove border
+    scalebar.patch.set_alpha(0.8)            # Fully opaque
+
+    ax.add_artist(scalebar)
 
     # fig.tight_layout()
 
-    plt.xticks([])#(np.arange(-edge,edge+1, step=100),fontsize=15,rotation=45)
-    plt.yticks([])#(np.arange(-edge,edge+1, step=100),fontsize=15)
+    # Custom ticks: show both axes but remove the duplicate '-edge' label
+    ticks = np.arange(-edge, edge+1, step=250)
+    plt.xticks([])
+    plt.yticks([])
+    # ax.set_xticks(ticks)
+    # ax.set_yticks(ticks)
+    # ax.set_xticklabels(ticks, fontsize=15)
+    # ax.set_yticklabels(ticks, fontsize=15)
     plt.ylim(-edge, edge)
     plt.xlim(-edge, edge)
+    # ax.set_xlabel('x [\u03bcm]', fontsize=15)
+    # ax.set_ylabel('y [\u03bcm]', fontsize=15)
+
 
     # plt.title(f'Time: {int(t/60)} h', fontsize=15, fontweight='bold')
     # plt.title(f'Reorientation rate: {fiber_reorientation_rate}', fontsize=15, fontweight='bold')
 
-    if title == True:
-        # plt.title(f'{prolif=}, {max_mot_speed=}\n{cell_adh=}, {cell_rep=}, r_degr={r_density}',fontsize=10)
-        plt.title(f'chemo_bias={chemotaxis_bias}, ecm_sens={ecm_sensitivity}, init_anis={initial_anisotropy}\n{r_displacement=}, r_orie={fiber_reorientation_rate}\nS_cm={max_mot_speed}, {r_degr=}',fontsize=15)
-        # plt.title(f'\nchemo_bias={chemotaxis_bias}, ecm_sens={ecm_sensitivity}\nS_cm={max_mot_speed}, r_orie={fiber_reorientation_rate}, init_anis={initial_anisotropy}',fontsize=15)
+    # if title == True:
+    #     # plt.title(f'{prolif=}, {max_mot_speed=}\n{cell_adh=}, {cell_rep=}, r_degr={r_density}',fontsize=10)
+    #     plt.title(f'chemo_bias={chemotaxis_bias}, ecm_sens={ecm_sensitivity}, init_anis={initial_anisotropy}\n{r_displacement=}, r_orie={fiber_reorientation_rate}\nS_cm={max_mot_speed}, {r_degr=}',fontsize=15)
+    #     # plt.title(f'\nchemo_bias={chemotaxis_bias}, ecm_sens={ecm_sensitivity}\nS_cm={max_mot_speed}, r_orie={fiber_reorientation_rate}, init_anis={initial_anisotropy}',fontsize=15)
 
     #### Plot output
     if output_plot is True:

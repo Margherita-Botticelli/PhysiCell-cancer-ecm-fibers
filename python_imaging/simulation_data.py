@@ -69,6 +69,7 @@ def snapshot_data(orientation,simulation, seed, snapshot, data_folder):
     mcds = pyMCDS(snapshot + '.xml', data_folder)
     t = mcds.get_time()  # Get current time
 
+
     #### Load cell data
     cell_df = mcds.get_cell_df()
     cell_var = mcds.get_cell_variables()

@@ -8,7 +8,7 @@ from itertools import product
 #### Script to run multiple simulations automatically by giving the parameter values
 
 #### Project name corresponding to folder in user_projects
-proj = 'ecm_fibers' # 'test' # 
+proj = 'ecm_fibers' # 'test' # 'ecm_density'
 
 #### True if we want to repeat an existing simulation with different random seeds or ribose concentrations 
 repeat_simulations = False
@@ -25,33 +25,116 @@ if repeat_simulations:
     # sys.exit()
 
 else:
-    
-    #### Simulations ID number: write number manually or write negative number to find last simulation number in the data folder 
-    simulation_id = 120 # 114 # 108 # 0 # 
-
     #### Define random seeds and ribose concentrations
-    random_seed_values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  #[0] #, 1, 2, 3, 4, 5, 6, 7, 8, 9] 
- 
+    random_seed_values = [0]#, 1, 2, 3, 4, 5, 6, 7, 8, 9]  #[0] #, 1, 2, 3, 4, 5, 6, 7, 8, 9] 
+
     # ribose_concentration_values = [0] # [0,50,200] # 
-    ecm_orientation_setup_values = ['random'] # ['random','radial','tangential'] # ['split'] # 
+
+    #### Simulations ID number: write number manually or write negative number to find last simulation number in the data folder 
+    # simulation_id =  120 # 114 # 108 # 0 # 
+
+    ###########
+
+    # # spheroid degr vs displ
+    # simulation_id = 156 
+    
+    # # Define parameter values for the simulations
+    # ecm_orientation_setup_values = ['random'] 
+
+    # cell_cell_adhesion_strength_values = ['0.4'] 
+    # cell_cell_repulsion_strength_values =  ['10']
+    # prolif_rate_values = ['0.00072'] 
+    # mot_speed_values = ['0.2']
+    # fiber_reorientation_rate_values = ['0.01'] # 
+    # ecm_displacement_rate_values = ['0.0', '0.001', '0.01', '0.1','1.0'] # 
+    # ecm_density_rate_values = ['0.0', '0.001', '0.01', '0.1','1.0'] # 
+    # fiber_realignment_rate_values = ['0.001']
+    # initial_ecm_density_values = ['0.7'] 
+    # density_target_values = ['0.5'] 
+    # initial_anisotropy_values = ['0.0'] 
+    # tumor_radius_values = ['100']
+    # ecm_sensitivity_values = ['0.8'] 
+    # chemotaxis_bias_values = ['0.2'] 
+    # substrate_density_threshold_values = ['15'] 
+    # cell_setup_values = ['spheroid'] 
+
+    ###########
+    
+    # spheroid reorientation vs orientation
+    simulation_id = 285 # 181 
 
     #### Define parameter values for the simulations
-    cell_cell_adhesion_strength_values = ['4.0']
+    ecm_orientation_setup_values = ['random','radial','tangential'] 
+
+    cell_cell_adhesion_strength_values = ['0.4'] 
     cell_cell_repulsion_strength_values =  ['10']
-    prolif_rate_values = ['0.00072'] # ['0'] # 
-    mot_speed_values = ['0.4'] 
-    fiber_reorientation_rate_values = ['0.01'] # ['0.0','0.002','0.01','0.05','0.25','1.25'] # ['1.25'] # 
-    ecm_displacement_rate_values = ['0.0'] # ['0.01'] # 
-    ecm_density_rate_values = ['0.0'] # ['0.01'] # 
+    prolif_rate_values = ['0.00072'] 
+    mot_speed_values = ['0.2']
+    fiber_reorientation_rate_values = ['0.0','0.001','0.01','0.1','1.0'] 
+    ecm_displacement_rate_values = ['0.1'] 
+    ecm_density_rate_values = ['0.01'] 
     fiber_realignment_rate_values = ['0.001']
-    initial_ecm_density_values = ['0.5'] # ['0.7'] # 
+    initial_ecm_density_values = ['0.7'] 
     density_target_values = ['0.5'] 
-    initial_anisotropy_values = ['0.0'] # ['0.5'] # ['0.5','0.2','0.8'] # 
-    tumor_radius_values = ['40'] # ['100'] # 
-    ecm_sensitivity_values = ['0.0','0.2','0.4','0.6','0.8','1.0'] # ['0.8'] # ['0.0','0.4','0.6'] # 
-    chemotaxis_bias_values = ['0.0','0.2','0.4','0.6','0.8','1.0'] # ['0.2'] # ['0.2','1.0'] # ['0.0','0.2','0.4'] # ['0.2'] # 
+    initial_anisotropy_values = ['0.7'] 
+    tumor_radius_values = ['100']
+    ecm_sensitivity_values = ['0.8'] 
+    chemotaxis_bias_values = ['0.4','0.8'] # ['0.2'] 
     substrate_density_threshold_values = ['15'] 
-    cell_setup_values = ['random_strip_bottom'] # ['spheroid'] # ['random_strip'] # 
+    cell_setup_values = ['spheroid'] 
+
+    #############
+
+    # # random chemo vs ecm 
+    # simulation_id = 186 
+
+    # # Define parameter values for the simulations
+    # ecm_orientation_setup_values = ['random'] 
+
+    # cell_cell_adhesion_strength_values = ['0.4'] 
+    # cell_cell_repulsion_strength_values =  ['10']
+    # prolif_rate_values = ['0']
+    # mot_speed_values = ['0.2']
+    # fiber_reorientation_rate_values = ['0.01'] 
+    # ecm_displacement_rate_values = ['0.0'] 
+    # ecm_density_rate_values = ['0.0'] 
+    # fiber_realignment_rate_values = ['0.001']
+    # initial_ecm_density_values = ['0.5'] 
+    # density_target_values = ['0.5'] 
+    # initial_anisotropy_values = ['0.0'] 
+    # tumor_radius_values = ['40'] 
+    # ecm_sensitivity_values = ['0.0','0.2','0.4','0.6','0.8','1.0'] # ['0.6','0.8','1.0'] # 
+    # chemotaxis_bias_values = ['0.0','0.2','0.4','0.6','0.8','1.0'] # ['0.2'] # 
+    # substrate_density_threshold_values = ['15'] 
+    # cell_setup_values = ['random_strip_bottom']
+
+    #################
+
+    # # split: chemo vs ecm and int anis vs ecm
+    # # simulation_id = 222 # chemo vs ecm sens
+    # # simulation_id = 258 # init anisotropy vs chemo split
+    # simulation_id = 267 # init anisotropy vs chemo split
+
+    # # Define parameter values for the simulations
+    # ecm_orientation_setup_values = ['split'] # 
+
+    # cell_cell_adhesion_strength_values = ['0.4'] 
+    # cell_cell_repulsion_strength_values =  ['10']
+    # prolif_rate_values = ['0']
+    # mot_speed_values = ['0.2']
+    # fiber_reorientation_rate_values = ['0.01'] 
+    # ecm_displacement_rate_values = ['0.0'] 
+    # ecm_density_rate_values = ['0.0'] 
+    # fiber_realignment_rate_values = ['0.001']
+    # initial_ecm_density_values = ['0.5'] 
+    # density_target_values = ['0.5'] 
+    # initial_anisotropy_values = ['0.9','1.0'] # ['0.5'] # ['0.3','0.5','0.7'] # 
+    # tumor_radius_values = ['40'] 
+    # ecm_sensitivity_values = ['0.6','0.8','1.0'] # ['0.0','0.2','0.4','0.6','0.8','1.0'] # 
+    # chemotaxis_bias_values = ['0.2', '0.6','1.0'] # ['0.0','0.2','0.4','0.6','0.8','1.0'] # 
+    # substrate_density_threshold_values = ['15'] 
+    # cell_setup_values = ['random_strip'] 
+    
 
     simulation_parameters = list(product(
     cell_cell_adhesion_strength_values,

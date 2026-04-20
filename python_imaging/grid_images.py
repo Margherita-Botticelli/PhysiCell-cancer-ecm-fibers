@@ -4,8 +4,9 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn
+import textwrap
 
-def grid_images(df_images, row_param, col_param, t, simulation_name, save_folder, title=False):
+def grid_images(df_images, row_param, col_param, t, simulation_name, save_folder, title=None):
     # Assign image paths
     for sim in np.unique(df_images['simulation']):
         orientations = np.unique(df_images['orientation']).astype(str)
@@ -36,37 +37,50 @@ def grid_images(df_images, row_param, col_param, t, simulation_name, save_folder
         for j, p2 in enumerate(col_vals):
             ax = axes[i, j]
             match = df_images[(df_images[row_param] == p1) &
-                              (df_images[col_param] == p2)]
+                            (df_images[col_param] == p2)]
             if not match.empty:
                 img = mpl.image.imread(match.iloc[0]["img_path"])
                 ax.imshow(img)
             ax.axis("off")
 
             # Column titles (top row)
-            if i == 0:
+            if i == nrows -1:
                 if col_param == 'chemotaxis_bias':
                     label = f'Chemotaxis bias: {p2}'
                 elif col_param == 'initial_anisotropy':
                     label = f'Initial anisotropy: {p2}'
                 elif col_param == 'fiber_reorientation_rate':
-                    label = f'Fiber reorientation rate: {p2}'
+                    label = f'Fibre reorientation rate: {p2}'
+                elif col_param == 'ecm_density_rate':
+                    label = f'ECM degradation rate: {p2}'
                 else:
                     label = f'{col_param}: {p2}'
-                ax.set_title(label, fontweight='bold', color='black')
+                ax.text(0.5,-0.1, label, va='bottom', ha='center', transform=ax.transAxes, fontweight='bold', color='black')
 
             # Row labels (right side of last column)
-            if j == ncols - 1:
+            if j == 0:
                 if row_param == 'ecm_sensitivity':
                     rlabel = f'ECM sensitivity: {p1}'
                 elif row_param == 'orientation':
                     rlabel = f'Orientation: {p1}'
+                elif row_param == 'ecm_displacement_rate':
+                    rlabel = f'ECM displacement rate: {p1}'
                 else:
                     rlabel = f'{row_param}: {p1}'
-                ax.text(1.05, 0.5, rlabel, va='center', ha='left', rotation=270,
+                ax.text(-0.1,0.5, rlabel, va='center', ha='left', rotation=90,
                         transform=ax.transAxes, fontweight='bold', color='black')
 
     # One horizontal colorbar per column, in the dedicated bottom row
+    # ECM density
     cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["white", seaborn.color_palette('colorblind')[3]])
+    
+    # # Chemical substrate
+    # cmap = mpl.colors.LinearSegmentedColormap.from_list("", [seaborn.color_palette('colorblind')[2], "white", seaborn.color_palette('colorblind')[4]])
+    
+    # # Anisotropy
+    # cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["white", seaborn.color_palette('colorblind')[1]])
+    
+    
     ticks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
     for j in range(ncols):
@@ -75,21 +89,25 @@ def grid_images(df_images, row_param, col_param, t, simulation_name, save_folder
             ax=axes[:, j],  # all axes in column j
             orientation='horizontal', 
             fraction=0.046,  # height of colorbar
-            pad=0.02, # space between colorbar and axes
+            pad=0.05, # space between colorbar and axes
             shrink=0.8
         )
         cbar.outline.set_visible(False)
         cbar.set_ticks(ticks)
         cbar.ax.tick_params(length=2) 
         cbar.set_label('ECM density', color='black')
+        # cbar.set_label('Chemical substrate [mmHg]', color='black')
+        # cbar.set_label('ECM anisotropy', color='black')
 
-    # Figure title
     if title:
-        fig.suptitle(title, fontweight='bold', color='black')
+        wrapped_title = textwrap.fill(str(title), width=70)
+        plt.suptitle(wrapped_title, fontsize=11)
+
+    orientation = str(df_images['orientation'].iloc[0])
 
     # Save tightly; no tight_layout() needed with constrained_layout
     fig.savefig(
-        save_folder + f'images/grid_images_{simulation_name}_t{int(t):04}.png',
+        save_folder + f'images/grid_images_{orientation}_{simulation_name}_t{int(t):04}.png',
         bbox_inches='tight', pad_inches=0.04, dpi=300
     )
 

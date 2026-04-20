@@ -56,9 +56,9 @@
             <initial_condition units="mmHg">38.0</initial_condition>
             <Dirichlet_boundary_condition units="mmHg" enabled="True">38.0</Dirichlet_boundary_condition>
             <Dirichlet_options>
-                <boundary_value ID="xmin" enabled="False">0</boundary_value>
-                <boundary_value ID="xmax" enabled="False">0</boundary_value>
-                <boundary_value ID="ymin" enabled="False">0</boundary_value>
+                <boundary_value ID="xmin" enabled="True">38</boundary_value>
+                <boundary_value ID="xmax" enabled="True">38</boundary_value>
+                <boundary_value ID="ymin" enabled="True">38</boundary_value>
                 <boundary_value ID="ymax" enabled="True">38</boundary_value>
                 <boundary_value ID="zmin" enabled="False">0</boundary_value>
                 <boundary_value ID="zmax" enabled="False">0</boundary_value>
@@ -221,7 +221,7 @@
         <number_of_cells type="int" units="none" description="initial number of cells (for each cell type)">100</number_of_cells>
         <initial_anisotropy type="double" units="dimensionless" description="Initial ECM anisotropy">0.0</initial_anisotropy>
         <initial_ecm_density type="double" units="dimensionless" description="Initial ECM density">1</initial_ecm_density>
-        <density_target units="dimensionless" description="degradation target">0.01</density_target>
+        <density_target units="dimensionless" description="degradation target">0.0</density_target>
         <tumor_radius type="double" units="microns" description="Initial cell mass radius">100</tumor_radius>
         <microenvironment_parameters type="double" units="" description="Microenvironment parameters">0</microenvironment_parameters>
         <ecm_unit_size type="double" units="dimensionless" description="Size of ECM unit">0</ecm_unit_size>
