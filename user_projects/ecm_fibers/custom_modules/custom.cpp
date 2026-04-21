@@ -1380,14 +1380,8 @@ void proliferation_inhibition( Cell* pCell, Phenotype& phenotype, double dt )
 		std::cout<<"Cell is dead"<<std::endl;
 	}
 
-	// Proliferation depends on number of cells in contact
+	// Proliferation depends on oxygen and cell pressure
 	double proliferation_rate = get_single_base_behavior(pCell,"cycle entry");
-
-	// Get threshold neighbours parameter
-	double overcrowding_threshold = pCell->custom_data["overcrowding_threshold"];
-
-	// Get cell's neighbours 
-	double n_attached =  pCell->state.neighbors.size();
 
 	static int substrate_index = microenvironment.find_density_index( "substrate" ); 
 
@@ -1395,7 +1389,7 @@ void proliferation_inhibition( Cell* pCell, Phenotype& phenotype, double dt )
 
 	double substrate_density_threshold = pCell->custom_data["substrate_density_threshold"];
 
-	proliferation_rate *= Hill_response_function(substrate_density, 21.5, 4);
+	proliferation_rate *= Hill_response_function(substrate_density, substrate_density_threshold, 4);
 
 	double pressure = get_single_signal( pCell , "pressure");
 
